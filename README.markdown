@@ -8,15 +8,14 @@ behaviour by relying on `process.nextTick` for memoized results..
 
 Usage
 -----
-    var memoize = require('async-memoizer').memoize;
-
+    
     var obj = {
       readFile(callback) {
         require('fs').readFile('path/to/file.txt', 'utf8', callback);
       }
     };
 
-    memoize(obj, 'readFile');
+    require('async-memoizer').memoize(obj, 'readFile');
 
 License
 -------
