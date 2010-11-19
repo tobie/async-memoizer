@@ -5,7 +5,15 @@ exports.memoize = memoize;
 function memoize(obj, methodName) {
   var originalMethod = obj[methodName],
       _unaryCache, _nAryCache;
-      
+  
+  function resetMemoizationCache() {
+    _unaryCache = _nAryCache = null;
+  }
+
+  function stopMemoization() {
+    obj[methodName] = originalMethod;
+  }
+  
   function wrapper(callback) {
     if (arguments.length == 1) {
       if (typeof callback != 'function') {
@@ -47,15 +55,7 @@ function memoize(obj, methodName) {
   }
   
   wrapper.resetMemoizationCache = resetMemoizationCache;
-  function resetMemoizationCache() {
-    _unaryCache = _nAryCache = null;
-  }
-  
   wrapper.stopMemoization = stopMemoization;
-  function stopMemoization() {
-    obj[methodName] = originalMethod;
-  }
-  
   obj[methodName] = wrapper;
 }
 
