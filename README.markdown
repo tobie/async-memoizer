@@ -4,7 +4,7 @@ async-memoizer
 A memoizer for asynchronous methods which obeys node.js conventions (last argument is always a callback).
 
 `async-memoizer` makes the memoization process external and transparent and keeps the method's asynchronous
-behaviour by relying on `process.nextTick` for memoized results..
+behaviour by relying on `process.nextTick` for memoized results.
 
 Usage
 -----
