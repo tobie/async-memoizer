@@ -2,7 +2,7 @@
   "name": "async-memoizer",
   "description": "A memoizer for asynchronous methods obeying node.js conventions (last argument is always a callback).",
   "main": "index.js",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "author": "Tobie Langel <tobie.langel@gmail.com> (http://tobielangel.com)",
   "repository": {
     "type": "git",

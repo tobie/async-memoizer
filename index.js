@@ -4,27 +4,21 @@ var _slice = Array.prototype.slice,
 exports.memoize = memoize;
 function memoize(obj, methodName) {
   var originalMethod = obj[methodName],
-      _unaryCache, _nAryCache;
-  
-  function resetMemoizationCache() {
-    _unaryCache = _nAryCache = null;
-  }
-
-  function stopMemoization() {
-    obj[methodName] = originalMethod;
-  }
+      _unaryCache = '_unaryMemoizationCacheFor_' + methodName,
+      _nAryCache = '_nAryMemoizationCacheFor_' + methodName;
   
   function wrapper(callback) {
+    var self = this;
     if (arguments.length == 1) {
       if (typeof callback != 'function') {
         throw new Error(NON_FUNCTION_CALLBACK_ERROR);
       }
       
-      if (_unaryCache) {
-        process.nextTick(function() { callback.apply(null, _unaryCache); });
+      if (self[_unaryCache]) {
+        process.nextTick(function() { callback.apply(null, self[_unaryCache]); });
       } else {
         originalMethod.call(this, function() {
-          _unaryCache = arguments;
+          self[_unaryCache] = arguments;
           callback.apply(null, arguments);
         });
       }
@@ -32,21 +26,28 @@ function memoize(obj, methodName) {
       var lastIndex = arguments.length - 1,
           args = _slice.call(arguments, 0, lastIndex),
           callback = arguments[lastIndex],
-          key = _getKey(args),
+          key,
           cache;
       
       if (typeof callback != 'function') {
         throw new Error(NON_FUNCTION_CALLBACK_ERROR);
       }
       
-      _nAryCache = _nAryCache || {};
-      cache = _nAryCache[key];
+      try {
+        key = _getKey(args)
+      } catch(e) {
+        originalMethod.apply(this, arguments);
+        return;
+      }
+      
+      self[_nAryCache] = self[_nAryCache] || {};
+      cache = self[_nAryCache][key];
       
       if (cache) {
         process.nextTick(function() { callback.apply(null, cache); });
       } else {
         args.push(function() {
-          _nAryCache[key] = arguments;
+          self[_nAryCache][key] = arguments;
           callback.apply(null, arguments);
         });
         originalMethod.apply(this, args);
@@ -54,9 +55,22 @@ function memoize(obj, methodName) {
     }
   }
   
-  wrapper.resetMemoizationCache = resetMemoizationCache;
-  wrapper.stopMemoization = stopMemoization;
+  wrapper.originalMethod = originalMethod;
   obj[methodName] = wrapper;
+}
+
+exports.reset = reset;
+function reset(obj, methodName) {
+  obj['_unaryMemoizationCacheFor_' + methodName] = null;
+  obj['_nAryMemoizationCacheFor_' + methodName] = null;
+}
+
+exports.stop = stop;
+function stop(obj, methodName) {
+  var originalMethod = obj[methodName].originalMethod;  
+  if (typeof originalMethod == 'function') {
+    obj[methodName] = originalMethod;
+  }
 }
 
 function _getKey(args) {
