@@ -8,14 +8,15 @@ function memoize(obj, methodName) {
       _nAryCache = '_nAryMemoizationCacheFor_' + methodName;
   
   function wrapper(callback) {
-    var self = this;
+    var self = this, cache;
     if (arguments.length == 1) {
       if (typeof callback != 'function') {
         throw new Error(NON_FUNCTION_CALLBACK_ERROR);
       }
       
-      if (self[_unaryCache]) {
-        process.nextTick(function() { callback.apply(null, self[_unaryCache]); });
+      cache = self[_unaryCache];
+      if (cache) {
+        process.nextTick(function() { callback.apply(null, cache); });
       } else {
         originalMethod.call(this, function() {
           self[_unaryCache] = arguments;
@@ -25,9 +26,9 @@ function memoize(obj, methodName) {
     } else {
       var lastIndex = arguments.length - 1,
           args = _slice.call(arguments, 0, lastIndex),
-          callback = arguments[lastIndex],
-          key,
-          cache;
+          key;
+      
+      callback = arguments[lastIndex];
       
       if (typeof callback != 'function') {
         throw new Error(NON_FUNCTION_CALLBACK_ERROR);
@@ -67,7 +68,7 @@ function reset(obj, methodName) {
 
 exports.stop = stop;
 function stop(obj, methodName) {
-  var originalMethod = obj[methodName].originalMethod;  
+  var originalMethod = obj[methodName].originalMethod;
   if (typeof originalMethod == 'function') {
     obj[methodName] = originalMethod;
   }
